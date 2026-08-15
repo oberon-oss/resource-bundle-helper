@@ -52,7 +52,6 @@ public final class ResourceBundleHelperRegistry {
 
     private static final Map<String, ResourceBundleHelper> RESOLVERS = new ConcurrentHashMap<>();
     private static final Object PROVIDER_LOAD_LOCK = new Object();
-    private static volatile boolean providersLoaded;
 
     static {
         loadProviders();
@@ -68,15 +67,7 @@ public final class ResourceBundleHelperRegistry {
      * @since 1.0.0
      */
     public static void loadProviders() {
-        if (providersLoaded) {
-            return;
-        }
-
         synchronized (PROVIDER_LOAD_LOCK) {
-            if (providersLoaded) {
-                return;
-            }
-
             final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 
             final ServiceLoader<ResourceBundleHelperProvider> providers = classLoader == null
@@ -84,14 +75,14 @@ public final class ResourceBundleHelperRegistry {
                     : ServiceLoader.load(ResourceBundleHelperProvider.class, classLoader);
 
             for (ResourceBundleHelperProvider provider : providers) {
-                register(
-                        provider.getKeyPrefix(),
-                        provider.getResourceBundle(),
-                        provider.getDelimiter()
-                );
+                if (retrieve(provider.getKeyPrefix()) == null) {
+                    register(
+                            provider.getKeyPrefix(),
+                            provider.getResourceBundle(),
+                            provider.getDelimiter()
+                    );
+                }
             }
-
-            providersLoaded = true;
         }
     }
 

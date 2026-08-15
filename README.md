@@ -68,16 +68,28 @@ Create a file named `META-INF/services/eu.oberon.oss.tools.resource.bundle.helpe
 
 #### 3. Accessing Registered Helpers
 
-Once registered, the helper is automatically loaded by `ResourceBundleHelperRegistry` and can be retrieved using its prefix:
+Once registered, the helper is automatically loaded by `ResourceBundleHelperRegistry` during class initialization and can be retrieved using its prefix:
 
 ```java
-void retrieveTest() {
+void testRetrieve() {
     ResourceBundleHelper helper = ResourceBundleHelperRegistry.retrieve("my.app");
     if (helper != null) {
         String greeting = helper.getString("welcome");
     }
 }
 ```
+
+#### 4. Manual Discovery Trigger
+
+In some environments (e.g., modular applications or complex classloader hierarchies), the automatic discovery might trigger before all providers are visible to the thread context class loader. You can manually trigger (or re-trigger) the discovery by calling:
+
+```java
+static {
+    ResourceBundleHelperRegistry.loadProviders();
+}
+```
+
+This will scan for and register any newly discovered providers that haven't been registered yet.
 
 ## Features
 
@@ -95,7 +107,6 @@ void retrieveTest() {
 [![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=oberon-oss_resource-bundle-helper&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=oberon-oss_resource-bundle-helper)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=oberon-oss_resource-bundle-helper&metric=coverage)](https://sonarcloud.io/summary/new_code?id=oberon-oss_resource-bundle-helper)
 [![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=oberon-oss_resource-bundle-helper&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=oberon-oss_resource-bundle-helper)
-
 [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=oberon-oss_resource-bundle-helper&metric=bugs)](https://sonarcloud.io/summary/new_code?id=oberon-oss_resource-bundle-helper)
 [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=oberon-oss_resource-bundle-helper&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=oberon-oss_resource-bundle-helper)
 [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=oberon-oss_resource-bundle-helper&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=oberon-oss_resource-bundle-helper)

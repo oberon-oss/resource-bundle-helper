@@ -24,10 +24,6 @@ class ResourceBundleHelperRegistryTest {
     }
 
     private void resetRegistry() throws Exception {
-        Field providersLoadedField = ResourceBundleHelperRegistry.class.getDeclaredField("providersLoaded");
-        providersLoadedField.setAccessible(true);
-        providersLoadedField.set(null, false);
-
         Field resolversField = ResourceBundleHelperRegistry.class.getDeclaredField("RESOLVERS");
         resolversField.setAccessible(true);
         Map<?, ?> resolvers = (Map<?, ?>) resolversField.get(null);
@@ -45,11 +41,10 @@ class ResourceBundleHelperRegistryTest {
     }
 
     @Test
-    void loadProviders_WhenAlreadyLoaded_ShouldDoNothing() {
+    void loadProviders_MultipleCalls_ShouldBeSafe() {
         ResourceBundleHelperRegistry.loadProviders();
-        assertTrue(isProvidersLoaded());
 
-        // Should not throw or re-register
+        // Second call should not throw or cause duplicate registration errors
         ResourceBundleHelperRegistry.loadProviders();
         
         assertNotNull(ResourceBundleHelperRegistry.retrieve("test"));
@@ -95,15 +90,5 @@ class ResourceBundleHelperRegistryTest {
         assertThrows(IllegalArgumentException.class, () -> 
             ResourceBundleHelperRegistry.register("duplicate", bundle, ".")
         );
-    }
-
-    private boolean isProvidersLoaded() {
-        try {
-            Field field = ResourceBundleHelperRegistry.class.getDeclaredField("providersLoaded");
-            field.setAccessible(true);
-            return (boolean) field.get(null);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
     }
 }
