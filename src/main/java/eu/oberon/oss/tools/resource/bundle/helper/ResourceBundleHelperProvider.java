@@ -33,11 +33,15 @@ public interface ResourceBundleHelperProvider {
 
     /**
      * Retrieves the delimiter associated with the implementation.
+     * <p>
+     * The default implementation provided here will return a dot (".")
      *
      * @return the delimiter for localized string retrieval and configuration.
      *
      * @since 1.0.0
      */
-    @NotNull String getDelimiter();
+    default @NotNull String getDelimiter() {
+        return ".";
+    }
 
 }

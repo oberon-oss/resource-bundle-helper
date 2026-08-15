@@ -75,6 +75,53 @@ public interface ResourceBundleHelper {
     @NotNull String getString(String relativeKey, BiFunction<String, Object[], String> formatter, Object... values);
 
     /**
+     * Returns a string formatted using {@link String#format(String, Object...)}.
+     *
+     * @param relativeKey The relativeKey of the property that holds the format string to use.
+     * @param values      The values to be used for formatting the localized string.
+     *
+     * @return The formatted localized string associated with the specified relativeKey. If values is {@code null}, or is empty, the retrieved string for the
+     *         given key will be returned.
+     *
+     * @since 1.0.0
+     */
+    @NotNull String getString(String relativeKey, Object... values);
+
+
+    /**
+     * Creates and returns an exception for the specified type, with its message formatted using the given relative key and optional formatting values.
+     *
+     * @param <E>            The type of exception to be created.
+     * @param exceptionClass The class of the exception to create.
+     * @param relativeKey    The relative key used to retrieve the localized message from the resource bundle.
+     * @param values         Optional values used to format the localized message.
+     *
+     * @return An instance of the specified exception type with a message based on the localized string identified by the relative key.
+     *
+     * @throws MissingResourceException      If the relative key is not found in the resource bundle.
+     * @throws ResourceBundleHelperException If the exception cannot be instantiated.
+     * @since 1.0.0
+     */
+    @NotNull <E extends Exception> E createException(Class<E> exceptionClass, String relativeKey, Object... values);
+
+    /**
+     * Creates and returns an exception for the specified type, with its message formatted using the given relative key, optional formatting values, and an
+     * optional cause.
+     *
+     * @param <E>            The type of exception to be created.
+     * @param exceptionClass The class of the exception to create.
+     * @param cause          The throwable cause to be associated with the created exception.
+     * @param relativeKey    The relative key used to retrieve the localized message from the resource bundle.
+     * @param values         Optional values used to format the localized message.
+     *
+     * @return An instance of the specified exception type with a message based on the localized string identified by the relative key and the specified cause.
+     *
+     * @throws MissingResourceException      If the relative key is not found in the resource bundle.
+     * @throws ResourceBundleHelperException If the exception cannot be instantiated.
+     */
+    @NotNull <E extends Exception> E createException(Class<E> exceptionClass, Throwable cause, String relativeKey, Object... values);
+
+    /**
      * Retrieves an object from the resource bundle using the specified relativeKey.
      *
      * @param relativeKey The relativeKey that, together with the prefix key ({@link #getKeyPrefix()}) is used to identify the localized string within the

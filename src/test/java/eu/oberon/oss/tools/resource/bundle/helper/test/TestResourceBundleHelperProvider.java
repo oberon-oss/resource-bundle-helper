@@ -2,6 +2,7 @@ package eu.oberon.oss.tools.resource.bundle.helper.test;
 
 import eu.oberon.oss.tools.resource.bundle.helper.ResourceBundleHelperProvider;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.util.ListResourceBundle;
 import java.util.ResourceBundle;
@@ -21,12 +22,7 @@ public final class TestResourceBundleHelperProvider implements ResourceBundleHel
     }
 
     @Override
-    public String getKeyPrefix() {
+    public @NonNull String getKeyPrefix() {
         return "test";
-    }
-
-    @Override
-    public String getDelimiter() {
-        return ".";
     }
 }

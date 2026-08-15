@@ -1,7 +1,5 @@
 package eu.oberon.oss.tools.resource.bundle.helper;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -11,7 +9,8 @@ import java.util.ResourceBundle;
 import java.util.function.BiFunction;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class DefaultResourceBundleHelperTest {
@@ -23,17 +22,6 @@ class DefaultResourceBundleHelperTest {
     private static final String RELATIVE_KEY = "message";
     private static final String FULL_KEY = "test.prefix.message";
     private static final String VALUE = "Hello World";
-
-    @BeforeEach
-    void setUp() {
-        // Ensure clean state for registry tests
-        DefaultResourceBundleHelper.unRegister(KEY_PREFIX);
-    }
-
-    @AfterEach
-    void tearDown() {
-        DefaultResourceBundleHelper.unRegister(KEY_PREFIX);
-    }
 
     @Test
     void constructor_WithDefaultDelimiter_ShouldInitializeCorrectly() {
@@ -102,9 +90,11 @@ class DefaultResourceBundleHelperTest {
     @Test
     void getString_WithFormatter_ShouldReturnFormattedValue() {
         DefaultResourceBundleHelper helper = new DefaultResourceBundleHelper(resourceBundle, KEY_PREFIX);
+        when(resourceBundle.getString(FULL_KEY)).thenReturn(VALUE);
+        
         Object[] args = {"arg1", 123};
-        BiFunction<String, Object[], String> formatter = (key, values) -> {
-            assertEquals(FULL_KEY, key);
+        BiFunction<String, Object[], String> formatter = (message, values) -> {
+            assertEquals(VALUE, message);
             assertArrayEquals(args, values);
             return "Formatted Value";
         };
@@ -112,6 +102,41 @@ class DefaultResourceBundleHelperTest {
         String result = helper.getString(RELATIVE_KEY, formatter, args);
 
         assertEquals("Formatted Value", result);
+        verify(resourceBundle).getString(FULL_KEY);
+    }
+
+    @Test
+    void getString_WithVarargs_ShouldReturnFormattedValue() {
+        DefaultResourceBundleHelper helper = new DefaultResourceBundleHelper(resourceBundle, KEY_PREFIX);
+        String formatValue = "Hello %s!";
+        when(resourceBundle.getString(FULL_KEY)).thenReturn(formatValue);
+
+        String result = helper.getString(RELATIVE_KEY, "World");
+
+        assertEquals("Hello World!", result);
+        verify(resourceBundle).getString(FULL_KEY);
+    }
+
+    @Test
+    void getString_WithVarargs_EmptyValues_ShouldReturnUnformattedValue() {
+        DefaultResourceBundleHelper helper = new DefaultResourceBundleHelper(resourceBundle, KEY_PREFIX);
+        when(resourceBundle.getString(FULL_KEY)).thenReturn(VALUE);
+
+        String result = helper.getString(RELATIVE_KEY, new Object[0]);
+
+        assertEquals(VALUE, result);
+        verify(resourceBundle).getString(FULL_KEY);
+    }
+
+    @Test
+    void getString_WithVarargs_NullValues_ShouldReturnUnformattedValue() {
+        DefaultResourceBundleHelper helper = new DefaultResourceBundleHelper(resourceBundle, KEY_PREFIX);
+        when(resourceBundle.getString(FULL_KEY)).thenReturn(VALUE);
+
+        String result = helper.getString(RELATIVE_KEY, (Object[]) null);
+
+        assertEquals(VALUE, result);
+        verify(resourceBundle).getString(FULL_KEY);
     }
 
     @Test
@@ -127,31 +152,64 @@ class DefaultResourceBundleHelperTest {
     }
 
     @Test
-    void register_ShouldAddHelperToRegistry() {
-        ResourceBundleHelper helper = DefaultResourceBundleHelper.register(KEY_PREFIX, resourceBundle);
+    void createException_ShouldReturnExceptionWithMessage() {
+        DefaultResourceBundleHelper helper = new DefaultResourceBundleHelper(resourceBundle, KEY_PREFIX);
+        when(resourceBundle.getString(FULL_KEY)).thenReturn(VALUE);
 
-        // This test is expected to fail currently due to the bug in DefaultResourceBundleHelper.register
-        assertNotNull(helper, "Register should return the new helper instance");
-        assertEquals(KEY_PREFIX, helper.getKeyPrefix());
-        
-        ResourceBundleHelper retrieved = DefaultResourceBundleHelper.retrieve(KEY_PREFIX);
-        assertSame(helper, retrieved);
+        IllegalArgumentException result = helper.createException(IllegalArgumentException.class, RELATIVE_KEY);
+
+        assertNotNull(result);
+        assertEquals(VALUE, result.getMessage());
     }
 
     @Test
-    void register_WithExistingPrefix_ShouldThrowException() {
-        DefaultResourceBundleHelper.register(KEY_PREFIX, resourceBundle);
-        
-        assertThrows(IllegalArgumentException.class, () -> DefaultResourceBundleHelper.register(KEY_PREFIX, resourceBundle));
+    void createException_WithFormatting_ShouldReturnFormattedException() {
+        DefaultResourceBundleHelper helper = new DefaultResourceBundleHelper(resourceBundle, KEY_PREFIX);
+        when(resourceBundle.getString(FULL_KEY)).thenReturn("Error: %s");
+
+        IllegalArgumentException result = helper.createException(IllegalArgumentException.class, RELATIVE_KEY, "Something went wrong");
+
+        assertNotNull(result);
+        assertEquals("Error: Something went wrong", result.getMessage());
     }
 
     @Test
-    void unRegister_ShouldRemoveHelperFromRegistry() {
-        DefaultResourceBundleHelper.register(KEY_PREFIX, resourceBundle);
-        assertNotNull(DefaultResourceBundleHelper.retrieve(KEY_PREFIX));
+    void createException_WithCause_ShouldReturnExceptionWithMessageAndCause() {
+        DefaultResourceBundleHelper helper = new DefaultResourceBundleHelper(resourceBundle, KEY_PREFIX);
+        when(resourceBundle.getString(FULL_KEY)).thenReturn(VALUE);
+        Exception cause = new RuntimeException("Original cause");
 
-        DefaultResourceBundleHelper.unRegister(KEY_PREFIX);
+        IllegalArgumentException result = helper.createException(IllegalArgumentException.class, cause, RELATIVE_KEY);
 
-        assertNull(DefaultResourceBundleHelper.retrieve(KEY_PREFIX));
+        assertNotNull(result);
+        assertEquals(VALUE, result.getMessage());
+        assertSame(cause, result.getCause());
+    }
+
+    @Test
+    void createException_WhenConstructorNotFound_ShouldThrowResourceBundleHelperException() {
+        DefaultResourceBundleHelper helper = new DefaultResourceBundleHelper(resourceBundle, KEY_PREFIX);
+
+        // Test with a class that doesn't have (String) constructor
+        assertThrows(ResourceBundleHelperException.class, () ->
+                helper.createException(NoStringConstructorException.class, RELATIVE_KEY)
+        );
+    }
+
+    @Test
+    void createException_WithCause_WhenConstructorNotFound_ShouldThrowResourceBundleHelperException() {
+        DefaultResourceBundleHelper helper = new DefaultResourceBundleHelper(resourceBundle, KEY_PREFIX);
+        Exception cause = new RuntimeException("Original cause");
+
+        // Test with a class that doesn't have (String, Throwable) constructor
+        assertThrows(ResourceBundleHelperException.class, () ->
+                helper.createException(NoStringConstructorException.class, cause, RELATIVE_KEY)
+        );
+    }
+
+    public static class NoStringConstructorException extends Exception {
+        public NoStringConstructorException() {
+            super();
+        }
     }
 }

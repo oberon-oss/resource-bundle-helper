@@ -71,18 +71,6 @@ public class MyMessagesProvider implements ResourceBundleHelperProvider {
 **Class Path:**
 Create a file named `META-INF/services/eu.oberon.oss.tools.resource.bundle.helper.ResourceBundleHelperProvider` in your JAR and add the fully qualified name of your implementation:
 
-```text
-com.example.i18n.MyMessagesProvider
-```
-
-**Module Path (JPMS):**
-In your `module-info.java`, declare that your module provides the service:
-
-```java
-provides eu.oberon.oss.tools.resource.bundle.helper.ResourceBundleHelperProvider
-    with com.example.i18n.MyMessagesProvider;
-```
-
 #### 3. Accessing Registered Helpers
 
 Once registered, the helper is automatically loaded by `ResourceBundleHelperRegistry` and can be retrieved using its prefix:

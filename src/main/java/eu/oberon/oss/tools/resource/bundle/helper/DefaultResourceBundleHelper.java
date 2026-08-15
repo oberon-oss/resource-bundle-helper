@@ -2,10 +2,8 @@ package eu.oberon.oss.tools.resource.bundle.helper;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Map;
 import java.util.Objects;
 import java.util.ResourceBundle;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 
 
@@ -15,9 +13,6 @@ import java.util.function.BiFunction;
  * <p>
  * The prefix specified at construction time will be used whenever a call is made to retrieve data from the {@link ResourceBundle} that was also specified at
  * construction time.
- * <p>
- * Note: When attempting to register a resolver with a key prefix that is already in use, an {@link IllegalArgumentException} will be thrown. To replace an
- * existing resolver, use the {@link #unRegister(String)} method to unregister the existing resolver before registering the new one.
  *
  * @author TigerLilly64
  * @since 1.0.0
@@ -40,7 +35,6 @@ public class DefaultResourceBundleHelper implements ResourceBundleHelper {
     public DefaultResourceBundleHelper(ResourceBundle bundle, String keyPrefix) {
         this(bundle, keyPrefix, ".");
     }
-
 
     /**
      * Creates a new instance of {@link DefaultResourceBundleHelper} with the specified {@link ResourceBundle} and key prefix.
@@ -77,7 +71,37 @@ public class DefaultResourceBundleHelper implements ResourceBundleHelper {
 
     @Override
     public @NotNull String getString(String relativeKey, BiFunction<String, Object[], String> formatter, Object... values) {
-        return formatter.apply(keyPrefix + delimiter + relativeKey, values);
+        return formatter.apply(getString(relativeKey), values);
+    }
+
+    private static final BiFunction<String, Object[], String> STRING_FORMATTER = (stringFormat, values) -> {
+        if (values == null || values.length == 0) {
+            return stringFormat;
+        }
+        return String.format(stringFormat, values);
+    };
+
+    @Override
+    public @NotNull String getString(String relativeKey, Object... values) {
+        return STRING_FORMATTER.apply(getString(relativeKey), values);
+    }
+
+    @Override
+    public <E extends Exception> @NotNull E createException(Class<E> exceptionClass, String relativeKey, Object... values) {
+        try {
+            return exceptionClass.getConstructor(String.class).newInstance(getString(relativeKey, values));
+        } catch (Exception e) {
+            throw new ResourceBundleHelperException("Failed to create exception", e);
+        }
+    }
+
+    @Override
+    public <E extends Exception> @NotNull E createException(Class<E> exceptionClass, Throwable cause, String relativeKey, Object... values) {
+        try {
+            return exceptionClass.getConstructor(String.class, Throwable.class).newInstance(getString(relativeKey, values), cause);
+        } catch (Exception e) {
+            throw new ResourceBundleHelperException("Failed to create exception", e);
+        }
     }
 
     @Override
@@ -96,54 +120,4 @@ public class DefaultResourceBundleHelper implements ResourceBundleHelper {
         return bundle;
     }
 
-    private static final Map<String, ResourceBundleHelper> RESOLVERS = new ConcurrentHashMap<>();
-
-    /**
-     * Registers a new ResourceBundleResolver for the specified package prefix.
-     *
-     * @param keyPrefix the prefix that will be added to all the key parameter in the {@link #getString(String)}, {@link #getObject(String)} and
-     *                  {@link #getString(String, BiFunction, Object...)} methods.
-     * @param bundle    the bundle to register with the new ResourceBundleHelper
-     *
-     * @return the registered resolver
-     *
-     * @throws IllegalArgumentException if a resolver is already registered for the specified key prefix
-     * @since 1.0.0
-     */
-    public static ResourceBundleHelper register(String keyPrefix, ResourceBundle bundle) {
-        final String prefix = Objects.requireNonNull(keyPrefix);
-
-        if (RESOLVERS.containsKey(prefix)) {
-            throw new IllegalArgumentException("A resolver is already registered for the package prefix: " + prefix);
-        }
-
-        DefaultResourceBundleHelper helper = new DefaultResourceBundleHelper(bundle, keyPrefix);
-        RESOLVERS.put(prefix, helper);
-        return helper;
-    }
-
-    /**
-     * Unregisters the ResourceBundleResolver associated with the specified package prefix.
-     *
-     * @param keyPrefix the key prefix associated with the resolver to unregister
-     *
-     * @since 1.0.0
-     */
-    public static void unRegister(String keyPrefix) {
-        RESOLVERS.remove(Objects.requireNonNull(keyPrefix));
-    }
-
-    /**
-     * Retrieves the ResourceBundleHelper associated with the specified package prefix.
-     *
-     * @param keyPrefix the key prefix associated with the resolver to retrieve
-     *
-     * @return the ResourceBundleHelper associated with the specified package prefix, or null if no resolver is registered for the specified package prefix
-     *
-     * @throws NullPointerException if the key prefix is null
-     * @since 1.0.0
-     */
-    public static ResourceBundleHelper retrieve(String keyPrefix) {
-        return RESOLVERS.get(Objects.requireNonNull(keyPrefix));
-    }
 }
