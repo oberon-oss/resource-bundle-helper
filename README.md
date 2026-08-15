@@ -58,11 +58,6 @@ public class MyMessagesProvider implements ResourceBundleHelperProvider {
     public @NotNull String getKeyPrefix() {
         return "my.app";
     }
-
-    @Override
-    public @NotNull String getDelimiter() {
-        return ".";
-    }
 }
 ```
 
@@ -76,9 +71,11 @@ Create a file named `META-INF/services/eu.oberon.oss.tools.resource.bundle.helpe
 Once registered, the helper is automatically loaded by `ResourceBundleHelperRegistry` and can be retrieved using its prefix:
 
 ```java
-ResourceBundleHelper helper = ResourceBundleHelperRegistry.retrieve("my.app");
-if (helper != null) {
-    String greeting = helper.getString("welcome");
+void retrieveTest() {
+    ResourceBundleHelper helper = ResourceBundleHelperRegistry.retrieve("my.app");
+    if (helper != null) {
+        String greeting = helper.getString("welcome");
+    }
 }
 ```
 
