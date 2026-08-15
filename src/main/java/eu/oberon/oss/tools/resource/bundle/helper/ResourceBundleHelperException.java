@@ -8,6 +8,17 @@ package eu.oberon.oss.tools.resource.bundle.helper;
  */
 public class ResourceBundleHelperException extends RuntimeException {
     /**
+     * Constructs a new ResourceBundleHelperException with the specified message.
+     *
+     * @param message The detail message.
+     *
+     * @since 1.0.0
+     */
+    public ResourceBundleHelperException(String message) {
+        super(message);
+    }
+
+    /**
      * Constructs a new ResourceBundleHelperException with the specified message and cause.
      *
      * @param message The detail message.

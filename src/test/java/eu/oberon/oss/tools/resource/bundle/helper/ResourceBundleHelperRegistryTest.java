@@ -87,7 +87,7 @@ class ResourceBundleHelperRegistryTest {
         ResourceBundle bundle = mock(ResourceBundle.class);
         ResourceBundleHelperRegistry.register("duplicate", bundle, ".");
         
-        assertThrows(IllegalArgumentException.class, () -> 
+        assertThrows(ResourceBundleHelperException.class, () ->
             ResourceBundleHelperRegistry.register("duplicate", bundle, ".")
         );
     }

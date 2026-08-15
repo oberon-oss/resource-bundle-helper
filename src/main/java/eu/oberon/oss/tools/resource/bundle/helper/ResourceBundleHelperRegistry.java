@@ -62,6 +62,8 @@ public final class ResourceBundleHelperRegistry {
 
     /**
      * Loads all {@link ResourceBundleHelperProvider} implementations available through {@link ServiceLoader} and registers them in this registry.
+     * <p>
+     * Calling this method multiple times will only add the ResourceBundleHelperProvider implementations that have not been registered yet.
      *
      * @throws ServiceConfigurationError if a provider cannot be loaded or instantiated
      * @since 1.0.0
@@ -107,7 +109,7 @@ public final class ResourceBundleHelperRegistry {
         final ResourceBundleHelper previous = RESOLVERS.putIfAbsent(prefix, helper);
 
         if (previous != null) {
-            throw new IllegalArgumentException("A resolver is already registered for the package prefix: " + prefix);
+            throw new ResourceBundleHelperException("A resolver is already registered for the package prefix: " + prefix);
         }
 
         return helper;
