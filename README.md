@@ -103,9 +103,9 @@ This will scan for and register any newly discovered providers that haven't been
 [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=oberon-oss_resource-bundle-helper&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=oberon-oss_resource-bundle-helper)
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=oberon-oss_resource-bundle-helper&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=oberon-oss_resource-bundle-helper)
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=oberon-oss_resource-bundle-helper&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=oberon-oss_resource-bundle-helper)
-
 [![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=oberon-oss_resource-bundle-helper&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=oberon-oss_resource-bundle-helper)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=oberon-oss_resource-bundle-helper&metric=coverage)](https://sonarcloud.io/summary/new_code?id=oberon-oss_resource-bundle-helper)
+
 [![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=oberon-oss_resource-bundle-helper&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=oberon-oss_resource-bundle-helper)
 [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=oberon-oss_resource-bundle-helper&metric=bugs)](https://sonarcloud.io/summary/new_code?id=oberon-oss_resource-bundle-helper)
 [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=oberon-oss_resource-bundle-helper&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=oberon-oss_resource-bundle-helper)
