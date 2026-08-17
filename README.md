@@ -91,6 +91,60 @@ static {
 
 This will scan for and register any newly discovered providers that haven't been registered yet.
 
+## Advanced Usage: Enum Utilities
+
+The `util` package allows tying enums to resource bundles for simplified messaging and logging.
+
+### 1. Implement `ResourceBundleUtilityEnum`
+
+Your enum should implement `ResourceBundleUtilityEnum` and delegate to an `EnumProvider`. It must also provide a `public static <L> void init(EnumProvider<L, YourEnum> provider)` method.
+
+```java
+public enum MyMessages implements ResourceBundleUtilityEnum {
+    USER_NOT_FOUND("err.404");
+
+    private final String key;
+    private static EnumProvider<?, MyMessages> _provider;
+
+    MyMessages(String key) { this.key = key; }
+
+    public static <L> void init(EnumProvider<L, MyMessages> provider) { _provider = provider; }
+
+    @Override public String getPropertyName() { return key; }
+    @Override public String getMessage(Object... v) { return _provider.getMessage(this, v); }
+    @Override public void logMessage(Object... v) { _provider.logMessage(this, v); }
+    @Override public <L> void logMessage(L l, Object... v) { ((EnumProvider<L, MyMessages>)_provider).logMessage(this, l, v); }
+    @Override public <T extends Exception> T getException(Class<T> c, Object... v) { return _provider.getException(this, c, v); }
+    @Override public <T extends Exception> T getException(Class<T> c, Throwable t, Object... v) { return _provider.getException(this, c, t, v); }
+}
+```
+
+### 2. Initialize and Use
+
+Use `DefaultEnumProvider` to link your enum with a `ResourceBundleHelper` and a logger.
+
+```java
+void example() {
+    DefaultEnumProvider.getInstance(
+            MyMessages.class, helper, logger, Level.INFO,
+            (log, level, msg) -> log.atLevel(level).log(msg),
+            (fmt, args) -> String.format(fmt, args)
+    );
+}
+
+// Usage
+void example() {
+    String msg = MyMessages.USER_NOT_FOUND.getMessage();
+    throw MyMessages.USER_NOT_FOUND.getException(RuntimeException.class);
+}
+```
+
+### Reflection Utilities
+
+`MethodTool` provides helper methods for reflection:
+- `getMethodSignature(Method)`: Generates a human-readable method signature.
+- `getSimpleTypeName(Type)`: Returns a simple name for complex generic types.
+
 ## Features
 
 - **Key Prefixing**: Automatically prepends a prefix to all keys.

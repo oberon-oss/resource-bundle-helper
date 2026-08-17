@@ -26,7 +26,7 @@ public class ResourceBundleHelperException extends RuntimeException {
      *
      * @since 1.0.0
      */
-    public ResourceBundleHelperException(String message, Exception cause) {
+    public ResourceBundleHelperException(String message, Throwable cause) {
         super(message, cause);
     }
 }
