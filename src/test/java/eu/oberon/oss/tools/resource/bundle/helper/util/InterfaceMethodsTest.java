@@ -12,14 +12,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class InterfaceMethodsTest {
 
-    private ResourceBundleHelper helper;
     private EnumProvider<String, TestEnum> provider;
     private StringBuilder logBuffer;
 
     @BeforeEach
     void setUp() {
         ResourceBundle resourceBundle = ResourceBundle.getBundle("test-i18n");
-        helper = new DefaultResourceBundleHelper(resourceBundle, "eu.oberon.oss.tools.resource.bundle.helper");
+        ResourceBundleHelper helper = new DefaultResourceBundleHelper(resourceBundle, "eu.oberon.oss.tools.resource.bundle.helper");
         
         logBuffer = new StringBuilder();
         LoggerConsumer<StringBuilder, String> loggerConsumer = (log, level, message) -> log.append("[").append(level).append("] ").append(message);
@@ -69,7 +68,7 @@ class InterfaceMethodsTest {
         TestEnum constant = TestEnum.TEST_VALUE_2;
 
         // getMessage(E enumConstant, Object... values)
-        assertThat(provider.getMessage(constant, new Object[]{"val"})).isEqualTo("Message 2 with value val");
+        assertThat(provider.getMessage(constant, "val")).isEqualTo("Message 2 with value val");
 
         // logMessage(E enumConstant, Object... values)
         provider.logMessage(constant, new Object[]{"val"});
@@ -77,17 +76,17 @@ class InterfaceMethodsTest {
         logBuffer.setLength(0);
 
         // logMessage(E enumConstant, L level, Object... values)
-        provider.logMessage(constant, "WARN", new Object[]{"val"});
+        provider.logMessage(constant, "WARN", "val");
         assertThat(logBuffer.toString()).contains("[WARN] Message 2 with value val");
         logBuffer.setLength(0);
 
         // getException(E enumConstant, Class<T> exceptionClass, Object... values)
-        RuntimeException ex = provider.getException(constant, RuntimeException.class, new Object[]{"val"});
+        RuntimeException ex = provider.getException(constant, RuntimeException.class, "val");
         assertThat(ex).hasMessage("Message 2 with value val");
 
         // getException(E enumConstant, Class<T> exceptionClass, Throwable cause, Object... values)
         Throwable cause = new IllegalArgumentException("wrong");
-        ex = provider.getException(constant, RuntimeException.class, cause, new Object[]{"val"});
+        ex = provider.getException(constant, RuntimeException.class, cause, "val");
         assertThat(ex).hasMessage("Message 2 with value val").hasCause(cause);
     }
 }
