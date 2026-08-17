@@ -125,15 +125,14 @@ Use `DefaultEnumProvider` to link your enum with a `ResourceBundleHelper` and a 
 
 ```java
 void example() {
-    DefaultEnumProvider.getInstance(
+    // Initialize the provider for the enum
+    DefaultEnumProvider.initForEnum(
             MyMessages.class, helper, logger, Level.INFO,
             (log, level, msg) -> log.atLevel(level).log(msg),
             (fmt, args) -> String.format(fmt, args)
     );
-}
 
-// Usage
-void example() {
+    // Use the enum methods directly
     String msg = MyMessages.USER_NOT_FOUND.getMessage();
     throw MyMessages.USER_NOT_FOUND.getException(RuntimeException.class);
 }

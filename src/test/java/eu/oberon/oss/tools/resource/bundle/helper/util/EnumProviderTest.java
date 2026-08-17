@@ -13,7 +13,7 @@ import java.util.function.BiFunction;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SuppressWarnings({"java:S1186","java:S1172", "java:S1144", "unused"})
+@SuppressWarnings({"java:S1186", "java:S1172", "java:S1144", "unused"})
 class EnumProviderTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(EnumProviderTest.class);
 
@@ -35,11 +35,7 @@ class EnumProviderTest {
             return String.format(formatString, args);
         };
 
-        DefaultEnumProvider<Logger, Level, TestEnum> defaultEnumProvider = DefaultEnumProvider.getInstance(
-                TestEnum.class, helper, LOGGER, Level.INFO, loggerConsumer, logFormatter
-        );
-
-        assertNotNull(defaultEnumProvider);
+        assertDoesNotThrow(() -> DefaultEnumProvider.initForEnum(TestEnum.class, helper, LOGGER, Level.INFO, loggerConsumer, logFormatter));
 
         // Test message retrieval via Enum
         assertEquals("Message 1", TestEnum.TEST_VALUE_1.getMessage());
@@ -61,17 +57,20 @@ class EnumProviderTest {
     @Test
     void testGetInstance_Failure_NoInitMethod() {
         // We need an enum without init method
-        assertThrows(ResourceBundleHelperException.class, () -> DefaultEnumProvider.getInstance(NoInitEnum.class, helper, LOGGER, Level.INFO, (_, _, _) -> {}, (f, _) -> f));
+        assertThrows(ResourceBundleHelperException.class, () -> DefaultEnumProvider.initForEnum(NoInitEnum.class, helper, LOGGER, Level.INFO, (_, _, _) -> {
+        }, (f, _) -> f));
     }
 
     @Test
     void testGetInstance_Failure_WrongInitSignature() {
-        assertThrows(ResourceBundleHelperException.class, () -> DefaultEnumProvider.getInstance(WrongInitEnum.class, helper, LOGGER, Level.INFO, (_, _, _) -> {}, (f, _) -> f));
+        assertThrows(ResourceBundleHelperException.class, () -> DefaultEnumProvider.initForEnum(WrongInitEnum.class, helper, LOGGER, Level.INFO, (_, _, _) -> {
+        }, (f, _) -> f));
     }
 
     @Test
     void testGetInstance_Failure_InitThrowsException() {
-        ResourceBundleHelperException ex = assertThrows(ResourceBundleHelperException.class, () -> DefaultEnumProvider.getInstance(ThrowingInitEnum.class, helper, LOGGER, Level.INFO, (_, _, _) -> {}, (f, _) -> f));
+        ResourceBundleHelperException ex = assertThrows(ResourceBundleHelperException.class, () -> DefaultEnumProvider.initForEnum(ThrowingInitEnum.class, helper, LOGGER, Level.INFO, (_, _, _) -> {
+        }, (f, _) -> f));
         assertTrue(ex.getMessage().contains("failed while invoking init(EnumProvider)"));
         assertNotNull(ex.getCause());
         assertInstanceOf(RuntimeException.class, ex.getCause());
@@ -80,7 +79,8 @@ class EnumProviderTest {
 
     @Test
     void testGetInstance_Failure_PrivateInit() {
-        ResourceBundleHelperException ex = assertThrows(ResourceBundleHelperException.class, () -> DefaultEnumProvider.getInstance(PrivateInitEnum.class, helper, LOGGER, Level.INFO, (_, _, _) -> {}, (f, _) -> f));
+        ResourceBundleHelperException ex = assertThrows(ResourceBundleHelperException.class, () -> DefaultEnumProvider.initForEnum(PrivateInitEnum.class, helper, LOGGER, Level.INFO, (_, _, _) -> {
+        }, (f, _) -> f));
         assertTrue(ex.getMessage().contains("no static method 'init(EnumProvider)' was found"));
         assertInstanceOf(NoSuchMethodException.class, ex.getCause());
         assertTrue(ex.getCause().getMessage().contains("Incorrect signature"));
@@ -89,7 +89,8 @@ class EnumProviderTest {
 
     @Test
     void testGetInstance_Failure_NonVoidInit() {
-        ResourceBundleHelperException ex = assertThrows(ResourceBundleHelperException.class, () -> DefaultEnumProvider.getInstance(NonVoidInitEnum.class, helper, LOGGER, Level.INFO, (_, _, _) -> {}, (f, _) -> f));
+        ResourceBundleHelperException ex = assertThrows(ResourceBundleHelperException.class, () -> DefaultEnumProvider.initForEnum(NonVoidInitEnum.class, helper, LOGGER, Level.INFO, (_, _, _) -> {
+        }, (f, _) -> f));
         assertTrue(ex.getMessage().contains("no static method 'init(EnumProvider)' was found"));
         assertInstanceOf(NoSuchMethodException.class, ex.getCause());
         assertTrue(ex.getCause().getMessage().contains("Incorrect signature"));
@@ -98,35 +99,102 @@ class EnumProviderTest {
 
     enum NoInitEnum implements ResourceBundleUtilityEnum {
         VAL;
-        @Override public String getPropertyName() { return "val"; }
-        @Override public String getMessage(Object... values) { return null; }
-        @Override public <T extends Exception> T getException(Class<T> exceptionClass, Object... values) { return null; }
-        @Override public <T extends Exception> T getException(Class<T> exceptionClass, Throwable cause, Object... values) { return null; }
-        @Override public void logMessage(Object... values) {}
-        @Override public <L> void logMessage(L level, Object... values) {}
+
+        @Override
+        public String getPropertyName() {
+            return "val";
+        }
+
+        @Override
+        public String getMessage(Object... values) {
+            return null;
+        }
+
+        @Override
+        public <T extends Exception> T getException(Class<T> exceptionClass, Object... values) {
+            return null;
+        }
+
+        @Override
+        public <T extends Exception> T getException(Class<T> exceptionClass, Throwable cause, Object... values) {
+            return null;
+        }
+
+        @Override
+        public void logMessage(Object... values) {
+        }
+
+        @Override
+        public <L> void logMessage(L level, Object... values) {
+        }
     }
 
     enum WrongInitEnum implements ResourceBundleUtilityEnum {
         VAL;
-        @Override public String getPropertyName() { return "val"; }
-        @Override public String getMessage(Object... values) { return null; }
-        @Override public <T extends Exception> T getException(Class<T> exceptionClass, Object... values) { return null; }
-        @Override public <T extends Exception> T getException(Class<T> exceptionClass, Throwable cause, Object... values) { return null; }
-        @Override public void logMessage(Object... values) {}
-        @Override public <L> void logMessage(L level, Object... values) {}
+
+        @Override
+        public String getPropertyName() {
+            return "val";
+        }
+
+        @Override
+        public String getMessage(Object... values) {
+            return null;
+        }
+
+        @Override
+        public <T extends Exception> T getException(Class<T> exceptionClass, Object... values) {
+            return null;
+        }
+
+        @Override
+        public <T extends Exception> T getException(Class<T> exceptionClass, Throwable cause, Object... values) {
+            return null;
+        }
+
+        @Override
+        public void logMessage(Object... values) {
+        }
+
+        @Override
+        public <L> void logMessage(L level, Object... values) {
+        }
 
         // Not static
-        public void init(EnumProvider<?, WrongInitEnum> ignoredProvider) {}
+        public void init(EnumProvider<?, WrongInitEnum> ignoredProvider) {
+        }
     }
 
     enum ThrowingInitEnum implements ResourceBundleUtilityEnum {
         VAL;
-        @Override public String getPropertyName() { return "val"; }
-        @Override public String getMessage(Object... values) { return null; }
-        @Override public <T extends Exception> T getException(Class<T> exceptionClass, Object... values) { return null; }
-        @Override public <T extends Exception> T getException(Class<T> exceptionClass, Throwable cause, Object... values) { return null; }
-        @Override public void logMessage(Object... values) {}
-        @Override public <L> void logMessage(L level, Object... values) {}
+
+        @Override
+        public String getPropertyName() {
+            return "val";
+        }
+
+        @Override
+        public String getMessage(Object... values) {
+            return null;
+        }
+
+        @Override
+        public <T extends Exception> T getException(Class<T> exceptionClass, Object... values) {
+            return null;
+        }
+
+        @Override
+        public <T extends Exception> T getException(Class<T> exceptionClass, Throwable cause, Object... values) {
+            return null;
+        }
+
+        @Override
+        public void logMessage(Object... values) {
+        }
+
+        @Override
+        public <L> void logMessage(L level, Object... values) {
+        }
 
         public static <L> void init(EnumProvider<L, ThrowingInitEnum> ignoredProvider) {
             throw new RuntimeException("Init failed");
@@ -135,25 +203,72 @@ class EnumProviderTest {
 
     enum PrivateInitEnum implements ResourceBundleUtilityEnum {
         VAL;
-        @Override public String getPropertyName() { return "val"; }
-        @Override public String getMessage(Object... values) { return null; }
-        @Override public <T extends Exception> T getException(Class<T> exceptionClass, Object... values) { return null; }
-        @Override public <T extends Exception> T getException(Class<T> exceptionClass, Throwable cause, Object... values) { return null; }
-        @Override public void logMessage(Object... values) {}
-        @Override public <L> void logMessage(L level, Object... values) {}
 
-        private static <L> void init(EnumProvider<L, PrivateInitEnum> ignoredProvider) {}
+        @Override
+        public String getPropertyName() {
+            return "val";
+        }
+
+        @Override
+        public String getMessage(Object... values) {
+            return null;
+        }
+
+        @Override
+        public <T extends Exception> T getException(Class<T> exceptionClass, Object... values) {
+            return null;
+        }
+
+        @Override
+        public <T extends Exception> T getException(Class<T> exceptionClass, Throwable cause, Object... values) {
+            return null;
+        }
+
+        @Override
+        public void logMessage(Object... values) {
+        }
+
+        @Override
+        public <L> void logMessage(L level, Object... values) {
+        }
+
+        private static <L> void init(EnumProvider<L, PrivateInitEnum> ignoredProvider) {
+        }
     }
 
     enum NonVoidInitEnum implements ResourceBundleUtilityEnum {
         VAL;
-        @Override public String getPropertyName() { return "val"; }
-        @Override public String getMessage(Object... values) { return null; }
-        @Override public <T extends Exception> T getException(Class<T> exceptionClass, Object... values) { return null; }
-        @Override public <T extends Exception> T getException(Class<T> exceptionClass, Throwable cause, Object... values) { return null; }
-        @Override public void logMessage(Object... values) {}
-        @Override public <L> void logMessage(L level, Object... values) {}
 
-        public static <L> int init(EnumProvider<L, NonVoidInitEnum> ignoredProvider) { return 0; }
+        @Override
+        public String getPropertyName() {
+            return "val";
+        }
+
+        @Override
+        public String getMessage(Object... values) {
+            return null;
+        }
+
+        @Override
+        public <T extends Exception> T getException(Class<T> exceptionClass, Object... values) {
+            return null;
+        }
+
+        @Override
+        public <T extends Exception> T getException(Class<T> exceptionClass, Throwable cause, Object... values) {
+            return null;
+        }
+
+        @Override
+        public void logMessage(Object... values) {
+        }
+
+        @Override
+        public <L> void logMessage(L level, Object... values) {
+        }
+
+        public static <L> int init(EnumProvider<L, NonVoidInitEnum> ignoredProvider) {
+            return 0;
+        }
     }
 }

@@ -34,10 +34,10 @@ public final class DefaultEnumProvider<W, L, E extends Enum<E> & ResourceBundleU
      * Creates and initializes an instance of DefaultEnumProvider for the given Enum class.
      * <p>
      * The enum class identified by the enumClass parameter, in addition to implementing {@link ResourceBundleUtilityEnum}, needs to define the following method
-     * {@code public static <L> void init(EnumProvider<L, TestEnum> provider)}.
+     * {@code public static <L> void init(EnumProvider<L, E> provider)}, where {@code E} is the enum class itself.
      * <p>
-     * After initialization, this method will call the init() method to inject the EnumProvider instance into the enum class. The enum, after the init() method was
-     * called, has access to the methods provided by the EnumProvider instance to retrieve localized messages and log messages.
+     * After initialization, this method will call the init() method to inject the EnumProvider instance into the enum class. The enum, after the init() method
+     * was called, has access to the methods provided by the EnumProvider instance to retrieve localized messages and log messages.
      *
      * @param <W>             the type of the logger
      * @param <L>             the type of the log level
@@ -49,13 +49,13 @@ public final class DefaultEnumProvider<W, L, E extends Enum<E> & ResourceBundleU
      * @param logConsumer     the LoggerConsumer instance to handle log message consumption
      * @param logMsgFormatter a BiFunction to format log messages with placeholders and values
      *
-     * @return an instance of DefaultEnumProvider associated with the provided Enum class
-     *
      * @throws ResourceBundleHelperException if the Enum class does not declare a public static void init(EnumProvider) method, or if an error occurs during the
      *                                       reflective invocation of the init method
      * @since 1.0.0
      */
-    public static <W, L, E extends Enum<E> & ResourceBundleUtilityEnum> DefaultEnumProvider<W, L, E> getInstance(Class<E> enumClass, ResourceBundleHelper helper, W logger, L dftLevel, LoggerConsumer<W, L> logConsumer, BiFunction<String, Object[], String> logMsgFormatter) {
+    public static <W, L, E extends Enum<E> & ResourceBundleUtilityEnum> void initForEnum(
+            Class<E> enumClass, ResourceBundleHelper helper, W logger, L dftLevel, LoggerConsumer<W, L> logConsumer,
+            BiFunction<String, Object[], String> logMsgFormatter) {
 
         DefaultEnumProvider<W, L, E> defaultEnumProvider = new DefaultEnumProvider<>(helper, logger, dftLevel, logConsumer, logMsgFormatter);
 
@@ -66,7 +66,6 @@ public final class DefaultEnumProvider<W, L, E extends Enum<E> & ResourceBundleU
         } catch (InvocationTargetException e) {
             throw new ResourceBundleHelperException("Enum class " + EnumProvider.class.getName() + " failed while invoking init(EnumProvider)", e.getCause());
         }
-        return defaultEnumProvider;
     }
 
     private static <E extends Enum<E> & ResourceBundleUtilityEnum> Method getMethod(Class<E> enumClass) throws NoSuchMethodException {

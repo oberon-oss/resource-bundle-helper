@@ -21,7 +21,6 @@ public interface LoggerConsumer<W, L> {
      * @param level   the log level to categorize the log entry
      * @param message the message content to be logged
      *
-     * @author TigerLilly64
      * @since 1.0.0
      */
     void accept(W logger, L level, String message);
