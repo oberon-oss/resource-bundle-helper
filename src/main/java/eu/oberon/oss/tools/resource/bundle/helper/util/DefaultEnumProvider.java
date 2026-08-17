@@ -111,7 +111,7 @@ public final class DefaultEnumProvider<W, L, E extends Enum<E> & ResourceBundleU
 
     @Override
     public String getMessage(E enumConstant, Object[] values) {
-        return helper.getString(enumConstant.getPropertyName(), messageFormatter, values);
+        return helper.getString(enumConstant.getPropertyName(), values);
     }
 
     @Override
