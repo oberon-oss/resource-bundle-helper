@@ -44,12 +44,23 @@ public class InitEnumProvider {
         // Prevent instantiation - this is a utility class
     }
 
+    /**
+     * Default logger consumer for logging messages.
+     *
+     * @since 1.0.0
+     */
     public static final LoggerConsumer<Logger, Level> LOGGER_CONSUMER = (logger, level, message) -> {
         if (logger.isEnabledForLevel(level)) {
             logger.atLevel(level).log(message);
         }
     };
-    public  static final BiFunction<String, Object[], String> LOG_FORMATTER = (messageFormatString, args) -> {
+
+    /**
+     * Default log message formatter using SLF4J's {@link MessageFormatter}.
+     *
+     * @since 1.0.0
+     */
+    public static final BiFunction<String, Object[], String> LOG_FORMATTER = (messageFormatString, args) -> {
         if (args == null || args.length == 0) {
             return messageFormatString;
         }
