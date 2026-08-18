@@ -91,7 +91,7 @@ public class DefaultResourceBundleHelper implements ResourceBundleHelper {
         try {
             return exceptionClass.getConstructor(String.class).newInstance(getString(relativeKey, values));
         } catch (Exception e) {
-            throw new ResourceBundleHelperException("Failed to create exception", e);
+            throw new ResourceBundleHelperException("Failed to create exception. Cause: " + e.getMessage(), e);
         }
     }
 
@@ -100,7 +100,7 @@ public class DefaultResourceBundleHelper implements ResourceBundleHelper {
         try {
             return exceptionClass.getConstructor(String.class, Throwable.class).newInstance(getString(relativeKey, values), cause);
         } catch (Exception e) {
-            throw new ResourceBundleHelperException("Failed to create exception", e);
+            throw new ResourceBundleHelperException("Failed to create exception. Cause: " + e.getMessage(), e);
         }
     }
 
