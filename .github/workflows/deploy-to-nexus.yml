@@ -1,0 +1,60 @@
+name: CI/CD Pipeline
+
+on:
+    push:
+        branches:
+            - main
+    workflow_dispatch:
+
+jobs:
+    compile:
+        name: 1. Compile Sources & Tests
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-java@v5
+              with:
+                  java-version: '25'
+                  distribution: 'temurin'
+                  cache: 'maven'
+            - name: Compile Main & Test Code
+              run: mvn clean test-compile -DskipTests=true
+
+    test-and-sonar:
+        name: 2. Test, Coverage & SonarCloud
+        needs: [compile]
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+            - uses: actions/setup-java@v5
+              with:
+                  java-version: '25'
+                  distribution: 'temurin'
+                  cache: 'maven'
+            - name: Run Tests, JaCoCo and SonarCloud
+              env:
+                  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: mvn test jacoco:report org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.qualitygate.wait=true
+
+    deploy:
+        name: 3. Deploy to Nexus Repository
+        needs: [test-and-sonar]
+        runs-on: ubuntu-latest
+        env:
+            NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
+            NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-java@v5
+              with:
+                  java-version: '25'
+                  distribution: 'temurin'
+                  cache: 'maven'
+                  server-id: nexus-repository
+                  server-username: NEXUS_USERNAME
+                  server-password: NEXUS_PASSWORD
+            - name: Publish Artifacts to Nexus
+              run: mvn deploy -Pgenerate-javadoc-and-source -DskipTests=true
